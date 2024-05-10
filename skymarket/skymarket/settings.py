@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/4.0/ref/settings/
 """
 
 import os
+from datetime import timedelta
 from pathlib import Path
 
 from dotenv import load_dotenv
@@ -41,8 +42,9 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-
     "rest_framework",
+    'drf_yasg',
+    'rest_framework_simplejwt',
     "redoc",
     'corsheaders',
     'djoser',
@@ -87,15 +89,34 @@ WSGI_APPLICATION = "skymarket.wsgi.application"
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework_simplejwt.authentication.JWTAuthentication',
-        'rest_framework.authentication.SessionAuthentication',
     ],
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.IsAuthenticated',
     ]
 }
-# TODO здесь мы настраиваем Djoser
-DJOSER = {
+
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(days=7),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
+    "AUTH_TOKEN_CLASSES": ("rest_framework_simplejwt.tokens.AccessToken",),
 }
+# TODO здесь мы настраиваем Djoser
+DJOSER = {'PASSWORD_RESET_CONFIRM_URL': '/password/reset/confirm/{uid}/{token}',
+          'USERNAME_RESET_CONFIRM_URL': '/username/reset/confirm/{uid}/{token}',
+          'ACTIVATION_URL': '/activate/{uid}/{token}',
+          'SEND_ACTIVATION_EMAIL': True,
+          'SERIALIZERS': {
+              'user_create': 'users.serializers.UserRegistrationSerializer',
+              'current_user': 'users.serializers.CurrentUserSerializer',
+              'activation': 'djoser.serializers.ActivationSerializer',
+              'password_reset': 'djoser.serializers.SendEmailResetSerializer',
+              'password_reset_confirm': 'djoser.serializers.PasswordResetConfirmSerializer',
+          },
+          'EMAIL': {
+              'password_reset': 'users.email.PasswordResetEmail',
+          },
+          'LOGIN_FIELD': 'email',
+          }
 
 # Database
 # https://docs.djangoproject.com/en/4.0/ref/settings/#databases
@@ -103,12 +124,12 @@ DJOSER = {
 # TODO здесь необходимо настроить подключение к БД
 DATABASES = {
     'default': {
-        'ENGINE': os.getenv('POSTGRES_ENGINE'),
-        'NAME': os.getenv('POSTGRES_DB'),
-        'USER': os.getenv('POSTGRES_USER'),
-        'PASSWORD': os.getenv('POSTGRES_PASSWORD'),
-        'HOST': os.getenv('POSTGRES_HOST'),
-        'PORT': os.getenv('POSTGRES_PORT'),
+        'ENGINE': os.getenv('DB_ENGINE'),
+        'NAME': os.getenv('DB_NAME'),
+        'USER': os.getenv('DB_USER'),
+        'PASSWORD': os.getenv('DB_PASSWORD'),
+        'PORT': os.getenv('DB_PORT'),
+        'HOST': os.getenv('DB_HOST'),
     }
 }
 
@@ -133,9 +154,9 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/4.0/topics/i18n/
 
-LANGUAGE_CODE = 'ru-ru'
+LANGUAGE_CODE = "ru"
 
-TIME_ZONE = 'Europe/Moscow'
+TIME_ZONE = "UTC"
 
 USE_I18N = True
 
@@ -164,12 +185,14 @@ CORS_ALLOW_ALL_ORIGINS = False
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
+AUTH_USER_MODEL = 'users.User'
+
 # Include Email Backend
 # TODO эти переменные мы добавили чтобы помочь Вам настроить почтовый ящик на django.
 # TODO теперь Вам необходимо создать файл .env на основе .env.sample
-EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
-EMAIL_USE_TLS = True
-EMAIL_HOST = os.environ.get("EMAIL_HOST", "smtp.gmail.com")
+EMAIL_BACKEND = os.environ.get("EMAIL_BACKEND")
+EMAIL_USE_TLS = os.environ.get("EMAIL_USE_TLS") == "True"
+EMAIL_HOST = os.environ.get("EMAIL_HOST")
 EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER")
 EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD")
 EMAIL_PORT = os.environ.get("EMAIL_PORT")
