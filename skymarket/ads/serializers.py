@@ -3,8 +3,6 @@ from rest_framework import serializers
 from ads.models import Comment, Ad
 
 
-# TODO Сериалайзеры. Предлагаем Вам такую структуру, однако вы вправе использовать свою
-
 class CommentSerializer(serializers.ModelSerializer):
     """"Класс-сериализатор для модели Comment"""
     author_first_name = serializers.CharField(source="author.first_name", read_only=True)

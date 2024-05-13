@@ -14,7 +14,6 @@ class AdPagination(pagination.PageNumberPagination):
     page_query_param = "page"
 
 
-# TODO view функции. Предлагаем Вам следующую структуру - но Вы всегда можете использовать свою
 class AdViewSet(viewsets.ModelViewSet):
     queryset = Ad.objects.all()
     filter_backends = [DjangoFilterBackend]
